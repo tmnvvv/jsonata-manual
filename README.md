@@ -33,72 +33,44 @@ JSON, используя знакомый синтаксис объектов JS
 
 ```json
 {
-  "entities": {
-    "components": {
-      "title": "Компонент прикладной архитектуры",
-      "config": {
-        "root_menu": "Архитектура/Прикладная"
-      },
-      "description": "Прикладные компоненты являются составными частями прикладного сервиса",
-      "schema": {
-        "type": "object",
-        "additionalProperties": false,
-        "$defs": {
-          "seaf.app.sber.component_type": {
-            "title": "Тип компонента",
-            "type": "string",
-            "default": "component",
-            "enum": [
-              "component",
-              "service"
-            ]
-          },
-          "seaf.app.sber.profile": {
-            "title": "Базовое описание компонента",
-            "type": "object",
-            "properties": {
-              "id": {
-                "title": "Уникальный идентификатор компонента",
-                "type": "string",
-                "format": "uuid"
-              }
-            }
-          },
-          "seaf.app.sber.service": {
-            "title": "Описание автоматизированной системы (АС)",
-            "type": "object",
-            "role_model": {
-              "title": "Ролевая модель автоматизированной системы",
-              "type": "string",
-              "enum": [
-                "Централизованная",
-                "Нецентрализованная",
-                "Отсутствует"
-              ]
-            },
-            "criticality": {
-              "title": "Уровень критичности",
-              "enum": [
-                "Mission Critical",
-                "Business Critical",
-                "Business Operational",
-                "Office Productivity"
-              ]
-            },
-            "live_stage": {
-              "title": "Этап жизненного цикла",
-              "enum": [
-                "Эскиз",
-                "В разработке / приобретение",
-                "Внедрение / Не введена в эксплуатацию",
-                "Опытная эксплуатация",
-                "Промышленная эксплуатация",
-                "Архивная"
-              ]
-            }
-          }
+  "title": "Компонент прикладной архитектуры",
+  "config": {
+    "root_menu": "Архитектура/Прикладная"
+  },
+  "description": "Прикладные компоненты являются составными частями прикладного сервиса",
+  "schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "seaf.app.sber.component_type": {
+      "title": "Тип компонента",
+      "type": "string",
+      "default": "component",
+      "enum": [
+        "component",
+        "service"
+      ]
+    },
+    "seaf.app.sber.profile": {
+      "title": "Базовое описание компонента",
+      "type": "object",
+      "properties": {
+        "id": {
+          "title": "Уникальный идентификатор компонента",
+          "type": "string",
+          "format": "uuid"
         }
       }
+    },
+    "live_stage": {
+      "title": "Этап жизненного цикла",
+      "enum": [
+        "Эскиз",
+        "В разработке / приобретение",
+        "Внедрение / Не введена в эксплуатацию",
+        "Опытная эксплуатация",
+        "Промышленная эксплуатация",
+        "Архивная"
+      ]
     }
   }
 }
@@ -354,15 +326,252 @@ Phone[type='home'][] /*[] можно использовать префексну
   "Архивная"
 ]
 ```
+
+Преобразование данных с помощью функций и выражений
+---------------------------------------------------
+```text
+Литерал - это то что мы можем выразить односложно, например: число, строка.
+
+Строковые литералы в jsonata создаются следующим образом: "тестовая строка" или 'тестовая строка'.
+
+```
+
+```jsonata
+entities.components.title & ' AC'
+```
+Вывод
+```json
+"Компонент прикладной архитектуры AC"
+```
+
+```jsonata
+entities.components.schema.(type & ' ' & additionalProperties)
+```
+
+Вывод
+```json
+"object false"
+```
+
+```text
+Язык jsonata поддерживает работу с числами как и во многих других языках.
+    + сложение
+    - вычитание
+    * умножение
+    / деление
+    % деление по модулю
+Операции сравнения:
+    = equals
+    != not equals
+    < less than
+    <= less than or equal
+    > greater than
+    >= greater than or equal
+    in value is contained in an array
+Логические выражения:
+    and
+    or  
+```
+
+Формирование структуры результирующего объекта
+-------------------------------------
+
+```text
+На языке jsonata можно формировать выходные объекты различного типа, например:
+    - string - 'Привет Мир!'
+    - number - 23.5
+    - Boolean - true, false
+    - null - null
+    - object - {"key1": "value1"}
+    - array - ["value1", value2]
+
+Рассмотрим 2 варианта, часто встречающихся на практике:
+
+В качестве примера возьмем простой объект
+```
+```json
+{
+  "Email": [
+    {
+      "type": "work",
+      "address": [
+        "fred.smith@my-work.com",
+        "fsmith@my-work.com"
+      ]
+    },
+    {
+      "type": "home",
+      "address": [
+        "freddy@my-social.com",
+        "frederic.smith@very-serious.com"
+      ]
+    }
+  ]
+}
+```
+
+```text
+1) Создание массивов  
+```
+```jsonata
+Email.address
+```
+Вывод:
+
+```json
+[
+  "fred.smith@my-work.com",
+  "fsmith@my-work.com",
+  "freddy@my-social.com",
+  "frederic.smith@very-serious.com"
+]
+```
+Видим, что 2 массива объединяются в один
+Если мы хотим, чтобы каждный элемент находился в отдельном массиве, то нужно сделать следующее
+
+```jsonata
+Email.[address]
+```
+
+Вывод:
+
+```json
+[
+  [ "fred.smith@my-work.com",  "fsmith@my-work.com" ],
+  [ "freddy@my-social.com", "frederic.smith@very-serious.com" ]
+]
+```
+Можем помещать различные элементы нашего объекта помещать в массив, например:
+
+```jsonata
+[property1, property2].Object
+```
+
+```text
+1) Создание объектов 
+```
+```jsonata
+Phone.{type: number}
+```
+Вывод:
+
+```json
+[
+  { "home": "0203 544 1234" },
+  { "office": "01962 001234" },
+  { "office": "01962 001235" },
+  { "mobile": "077 7700 1234"  }
+]
+```
+
+Комбинирование пар ключ/значение в одно объекте
+
+```jsonata
+Phone{type: number}
+```
+
+Вывод:
+
+```json
+{
+  "home": "0203 544 1234",
+  "office": [
+    "01962 001234",
+    "01962 001235"
+  ],
+  "mobile": "077 7700 1234"
+}
+```
+
+Комбинирование пар ключ/значение в одно объекте и группирование всех чисел в массиве
+
+```jsonata
+Phone{type: number[]}
+```
+
+Вывод:
+
+```json
+{
+  "home": [
+    "0203 544 1234"
+  ],
+  "office": [
+    "01962 001234",
+    "01962 001235"
+  ],
+  "mobile": [
+    "077 7700 1234"
+  ]
+}
+```
+
+Композиция запросов
+-------------------
+
+```text
+ В JSONata все является выражением.
+ Выражение состоит из значений, функций и операторов, которые при вычислении дают результирующее значение.
+ Функции и операторы применяются к значениям, которые сами могут быть результатами вычисления подвыражений. 
+ 
+ При арифметических опрерациях возможно задавать приоритет с помощью круглых скобок, например:
+        
+        (5 + 7) * 3
+ 
+ Для более сложных выражений можно использовать следующий подход:       
+            
+            Product.(Price * Quantity) - Price b Quantity являются свойствами объека Product
+            
+ Можно выделять в блок набор выражений разделенных точкой с запятой, например:
+            (expr1; expr2; expr3) - каждое выражение в блоке вычисляется последовательно, результат последнего выражения возвращается как результат блока.
+```
+
+
 Сортировка, Группировка и Агрегация данных
 ------------------------------------------
+
+```text
+Язык предоставляет несколько способов для сортировки массивов.
+    1) Использование функции $sort()
+    2) order-by operator
+    
+Группировка данных
+
+
+
+Account.Order.Product{`Product Name`: Price}
+
+Result	
+{
+  "Bowler Hat": [ 34.45, 34.45 ],
+  "Trilby hat": 21.67,
+  "Cloak": 107.99
+}
+
+Account.Order.Product {
+  `Product Name`: {"Price": Price, "Qty": Quantity}
+}
+Result	
+{
+  "Bowler Hat": {
+    "Price": [ 34.45, 34.45 ],
+    "Qty": [ 2, 4 ]
+  },
+  "Trilby hat": { "Price": 21.67, "Qty": 1 },
+  "Cloak": { "Price": 107.99, "Qty": 1 }
+}
+```
+
+
+
+
+
 
 
 Операторы
 ---------
 
-Библиотека Функций
-------------------
+
 String Functions
 Numeric Functions
 Aggregation Functions
@@ -375,8 +584,7 @@ Higher Order Functions
 Функции высших порядков
 -----------------------
 
-Функции и Выражения
-------------------
+
 
 ```text
 Jsonata позволяет создавать функции
@@ -398,12 +606,15 @@ Jsonata позволяет создавать функции
     }
 )
 ```
+Инструкция - это синтаксическая единица языка, выражающее действие.
+
+
+
 
 Расширение JSONata
 ------------------
 
-Композиция запросов
--------------------
+
 
 Функциональное программирование
 -------------------------------
@@ -426,8 +637,386 @@ Other Operators
 Обработка модели
 ----------------
 
-Result Structures
------------------
+
+
+
+Библиотека Функций
+------------------
+<style type="text/css">
+.tg  {border-collapse:collapse;border-spacing:0;}
+.tg td{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
+  overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg th{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
+  font-weight:normal;overflow:hidden;padding:10px 5px;word-break:normal;}
+.tg .tg-wzsp{font-size:14px;font-style:italic;font-weight:bold;text-align:left;vertical-align:top}
+.tg .tg-62xo{font-size:14px;font-weight:bold;text-align:center;vertical-align:top}
+.tg .tg-13pz{font-size:18px;text-align:center;vertical-align:top}
+.tg .tg-6nwz{font-size:14px;text-align:center;vertical-align:top}
+.tg .tg-ltad{font-size:14px;text-align:left;vertical-align:top}
+.tg .tg-6t3r{font-style:italic;font-weight:bold;text-align:left;vertical-align:top}
+.tg .tg-0lax{text-align:left;vertical-align:top}
+</style>
+<table class="tg">
+<thead>
+  <tr>
+    <th class="tg-13pz"><span style="font-weight:bold">Функция</span></th>
+    <th class="tg-13pz"><span style="font-weight:bold">Описание</span></th>
+    <th class="tg-13pz"><span style="font-weight:bold">Пример</span></th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td class="tg-6nwz" colspan="3"><span style="font-weight:bold">Функции работы со строками</span></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$string()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$length()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$substring()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$substringBefore()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$substringAfter()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$uppercase()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$lowercase()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$trim()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$pad()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$contains()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$split()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$join()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$match()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$replace()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$eval()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$base64encode()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$base64decode()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$encodeUrlComponent()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$encodeUrl()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$decodeUrlComponent()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$decodeUrl()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-62xo" colspan="3">Функции работы с числами</td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$number()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$abs()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$floor()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$ceil()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$round()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$power()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$sqrt()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$random()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$formatNumber()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$formatBase()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$formatInteger()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$parseInteger()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-6nwz" colspan="3"><span style="font-weight:bold">Агрегатные функции</span></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$sum()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$max()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$min()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$average()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-62xo" colspan="3">Логические функции</td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$boolean()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$not()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$exists()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-62xo" colspan="3">Функции работы с массивами</td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$count()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$append()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$sort()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$reverse()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$shuffle()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$distinct()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$zip()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-62xo" colspan="3">Функции работы с объектами</td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$keys()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$lookup()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$spread()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$merge()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$sift()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$each()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$error()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$assert()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$type()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-62xo" colspan="3">Date/Time функции</td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$now()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$millis()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$fromMillis()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$toMillis()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-62xo" colspan="3">Функции высшего порядка</td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$map()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$filter()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$single()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-wzsp">$reduce()</td>
+    <td class="tg-ltad"></td>
+    <td class="tg-ltad"></td>
+  </tr>
+  <tr>
+    <td class="tg-6t3r">$sift()</td>
+    <td class="tg-0lax"></td>
+    <td class="tg-0lax"></td>
+  </tr>
+</tbody>
+</table>
+
 
 Dochub примеры
 --------------
@@ -664,6 +1253,5 @@ Dochub примеры
 
 Авторы
 -----
-
 - Николай Темняков
 - Илья Караваев
